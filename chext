@@ -1,0 +1,31 @@
+#!/bin/zsh
+ME=$(basename $0)
+USAGE="usage: ${ME} .old .new [file...]"
+
+if [ $# -lt 2 ]; then
+	echo "${USAGE}" >&2
+	exit 1
+fi
+OLD="$1"
+case "${OLD}" in
+.* )	;;
+* )	echo "${USAGE}" >&2; exit 1;;
+esac
+NEW="$2"
+case "${NEW}" in
+.* )	;;
+* )	echo "${USAGE}" >&2; exit 1;;
+esac
+# printf "OLD='${OLD}' NEW='${NEW}'\n"
+shift 2
+for f in ${@:-*}
+do
+	# echo "${f}"
+	case "${f}" in
+	*${OLD} )
+		dir=$(dirname ${f})
+		bn=$(basename ${f} ${OLD})
+		${DEBUG} mv ${f} ${dir}/${bn}${NEW}
+		;;
+	esac
+done
