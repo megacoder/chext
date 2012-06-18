@@ -1,30 +1,82 @@
-#!/bin/zsh
-ME=$(basename $0)
-USAGE="usage: ${ME} .old .new [file...]"
+#!/usr/bin/python
+import	os
+import	sys
+import	stat
 
-if [ $# -lt 2 ]; then
-	echo "${USAGE}" >&2
-	exit 1
-fi
-OLD="$1"
-case "${OLD}" in
-.* )	;;
-* )	echo "${USAGE}" >&2; exit 1;;
-esac
-NEW="$2"
-case "${NEW}" in
-.* )	;;
-* )	echo "${USAGE}" >&2; exit 1;;
-esac
-# printf "OLD='${OLD}' NEW='${NEW}'\n"
-shift 2
-for f in "${@:-*}"; do
-	# echo "${f}"
-	case "${f}" in
-	*${OLD} )
-		dir=$(dirname "${f}")
-		bn=$(basename "${f}" "${OLD}")
-		${DEBUG} mv "${f}" "${dir}/${bn}${NEW}"
-		;;
-	esac
-done
+class	Chext( object ):
+
+	ENODOT = '%s extension [%s] must begin with a dot.'
+
+	def	__init__( self, old, new, verbose = False ):
+		if not old.startswith( '.' ):
+			print >>sys.stderr, Chext.ENODIT % ('Old', old)
+			raise ValueError
+		if not new.startswith( '.' ):
+			print >>sys.stderr, Chext.ENODIT % ('New', new)
+			raise ValueError
+		self.old = old
+		self.old_len = len( old )
+		self.new = new
+		self.verbose = verbose
+		return
+
+	def	do_name( self, name ):
+		try:
+			mode = os.stat( name )[stat.ST_MODE]
+		except Exception, e:
+			print >>sys.stderr, 'Cannot stat "%s".' % name
+			raise e
+		if stat.S_ISREG( mode ):
+			self.do_file( name )
+		elif stat.S_ISDIR( mode ):
+			self.do_dir( name )
+		else:
+			if self.verbose:
+				print >>sys.stderr, 'Ignoring "%s".' % name
+		return
+
+	def	do_dir( self, dn ):
+		try:
+			files = os.listdir( dn )
+		except Exception, e:
+			print >>sys.stderr, 'Cannot list directory "%s".' % dn
+			if self.verbose:
+				raise e
+			else:
+				return
+		files.sort()
+		for file in files:
+			self.do_name( os.path.join( dn, file ) )
+		return
+
+	def	do_file( self, old_fn ):
+		if old_fn.endswith( self.old ):
+			new_fn = old_fn[0:-self.old_len] + self.new
+			if self.verbose:
+				print '%s --> %s' % ( old_fn, new_fn )
+			try:
+				os.rename( old_fn, new_fn )
+			except Exception, e:
+				print >>sys.stderr, 'Failed to rename [%s] to [%s]' % (
+					old_fn,
+					new_fn
+				)
+				if self.verbose:
+					print >>sys.stderr, e
+		else:
+			if self.verbose:
+				print >>sys.stderr, 'Ignoring "%s".' % old_fn
+		return
+
+if __name__ == '__main__':
+	argc = len(sys.argv)
+	if argc < 3:
+		print >>sys.stderr, 'proc old new [files]'
+		exit(1)
+	chext = Chext( sys.argv[1], sys.argv[2] )
+	if argc == 3:
+		chext.do_dir( '.' )
+	else:
+		for name in sys.argv[3:]:
+			chext.do_name( name )
+	exit(0)
