@@ -1,5 +1,11 @@
+* Thu Dec 21 2023 Tommy Reynolds
+- (858a54f) Use ZSH and not test(1), et.al. (HEAD -> master)
+
+* Thu Dec 21 2023 Tommy Reynolds
+- (fbdc87f) Started explicit changelog.
+
 * Wed Jun 11 2014 Tommy Reynolds
-- (470d498) Create README.md (HEAD -> master, tag: v2.0.0, origin/master, origin/HEAD)
+- (470d498) Create README.md (tag: v2.0.0, origin/master, origin/HEAD)
 
 * Tue Sep 21 2010 Tommy Reynolds
 - (47930a3) Converted to git (tag: zsh)
