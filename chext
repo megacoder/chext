@@ -1,8 +1,8 @@
 #!/bin/zsh
-ME=$(basename $0)
+ME="${0:t:r}"
 USAGE="usage: ${ME} .old .new [file...]"
 
-if [ $# -lt 2 ]; then
+if [[ $# -lt 2 ]]; then
 	echo "${USAGE}" >&2
 	exit 1
 fi
@@ -18,14 +18,13 @@ case "${NEW}" in
 esac
 # printf "OLD='${OLD}' NEW='${NEW}'\n"
 shift 2
-for f in ${@:-*}
-do
+for f in ${@:-*}; do
 	# echo "${f}"
 	case "${f}" in
 	*${OLD} )
-		dir=$(dirname ${f})
-		bn=$(basename ${f} ${OLD})
-		${DEBUG} mv ${f} ${dir}/${bn}${NEW}
+		dn="${f:h}"
+		bn="${f:t:r}"
+		${DEBUG} /bin/mv "'${f:a}'" "'${dn}/${bn}${NEW}'"
 		;;
 	esac
 done
